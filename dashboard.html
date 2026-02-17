@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - AttendFlow{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Dashboard</h1>
+    <p>Overview of attendance system</p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon blue">👥</div>
+        <div class="stat-content">
+            <h3>Total Students</h3>
+            <p class="stat-number">{{ total_students }}</p>
+            <p class="stat-label">Across all divisions</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon purple">📚</div>
+        <div class="stat-content">
+            <h3>Total Divisions</h3>
+            <p class="stat-number">{{ total_divisions }}</p>
+            <p class="stat-label">Computer Science</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon green">📈</div>
+        <div class="stat-content">
+            <h3>Today's Attendance</h3>
+            <p class="stat-number">{{ attendance_rate }}%</p>
+            <p class="stat-label">Overall attendance rate</p>
+        </div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon red">⚠</div>
+        <div class="stat-content">
+            <h3>Low Attendance</h3>
+            <p class="stat-number">{{ low_attendance_count }}</p>
+            <p class="stat-label">Students below 75%</p>
+        </div>
+    </div>
+</div>
+
+<div class="action-cards">
+    <h2 class="section-title">Quick Actions</h2>
+    
+    <div class="cards-grid">
+        <a href="{{ url_for('mark_attendance') }}" class="action-card">
+            <div class="action-icon">✓</div>
+            <h3>Mark Attendance</h3>
+            <p>Record student attendance for sessions</p>
+        </a>
+        
+        <a href="{{ url_for('reports') }}" class="action-card">
+            <div class="action-icon">📊</div>
+            <h3>View Reports</h3>
+            <p>Analyze attendance data and trends</p>
+        </a>
+    </div>
+</div>
+
+<div class="system-info-card">
+    <h2 class="section-title">System Information</h2>
+    
+    <table class="info-table">
+        <tr>
+            <td class="info-label">Sessions per Day</td>
+            <td class="info-value">{{ sessions_per_day }}</td>
+        </tr>
+        <tr>
+            <td class="info-label">Subjects</td>
+            <td class="info-value">{{ subjects | join(', ') }}</td>
+        </tr>
+        <tr>
+            <td class="info-label">Students per Division</td>
+            <td class="info-value">{{ students_per_division }}</td>
+        </tr>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Reports - AttendFlow{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Attendance Reports</h1>
+    <p>View and analyze student attendance data</p>
+</div>
+
+<div class="report-controls">
+    <div class="filter-group">
+        <label for="divisionFilter">Filter by Division:</label>
+        <select id="divisionFilter" onchange="filterDivision()">
+            <option value="all" {% if selected_division == 'all' %}selected{% endif %}>All Divisions</option>
+            {% for div in divisions %}
+            <option value="{{ div }}" {% if selected_division == div %}selected{% endif %}>Division {{ div }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    
+    <button onclick="exportCSV()" class="btn-secondary">
+        📥 Export CSV
+    </button>
+</div>
+
+<div class="report-card">
+    <h2>Student Attendance Summary</h2>
+    
+    <div class="table-responsive">
+        <table class="report-table">
+            <thead>
+                <tr>
+                    <th>Roll No</th>
+                    <th>Name</th>
+                    <th>Division</th>
+                    <th>Total Sessions</th>
+                    <th>Present</th>
+                    <th>Absent</th>
+                    <th>Attendance %</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr>
+                    <td><strong>{{ student.roll_no }}</strong></td>
+                    <td>{{ student.name }}</td>
+                    <td><span class="badge-division">{{ student.division }}</span></td>
+                    <td>{{ student.total_sessions }}</td>
+                    <td class="text-green"><strong>{{ student.present }}</strong></td>
+                    <td class="text-red"><strong>{{ student.absent }}</strong></td>
+                    <td>
+                        <div class="attendance-cell">
+                            <span class="percentage {% if student.percentage < 75 %}low{% elif student.percentage < 85 %}medium{% else %}high{% endif %}">
+                                {{ student.percentage }}%
+                            </span>
+                            <div class="progress-bar">
+                                <div class="progress-fill {% if student.percentage < 75 %}low{% elif student.percentage < 85 %}medium{% else %}high{% endif %}" 
+                                     style="width: {{ student.percentage }}%"></div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function filterDivision() {
+    const division = document.getElementById('divisionFilter').value;
+    window.location.href = `{{ url_for('reports') }}?division=${division}`;
+}
+
+function exportCSV() {
+    const table = document.querySelector('.report-table');
+    let csv = [];
+    
+    // Headers
+    const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent);
+    csv.push(headers.join(','));
+    
+    // Rows
+    const rows = table.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+        const cols = Array.from(row.querySelectorAll('td')).map(td => {
+            return td.textContent.trim().replace(/,/g, '');
+        });
+        csv.push(cols.join(','));
+    });
+    
+    // Download
+    const csvContent = csv.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `attendance_report_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+}
+</script>
+{% endblock %}

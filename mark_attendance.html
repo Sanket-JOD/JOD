@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}Mark Attendance - AttendFlow{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Mark Attendance</h1>
+    <p>Record student attendance for sessions</p>
+</div>
+
+<form method="POST" id="attendanceForm">
+    <div class="attendance-controls">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="division">Division</label>
+                <select id="division" name="division" required onchange="loadStudents()">
+                    <option value="">Select Division</option>
+                    {% for div in divisions %}
+                    <option value="{{ div }}">{{ div }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="subject">Session</label>
+                <select id="subject" name="subject" required>
+                    <option value="">Select Subject</option>
+                    {% for subj in subjects %}
+                    <option value="{{ subj }}">{{ subj }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="date">Date</label>
+                <input type="date" id="date" name="date" value="{{ today }}" required>
+            </div>
+        </div>
+    </div>
+    
+    <div id="studentsContainer" style="display: none;">
+        <div class="attendance-summary">
+            <div class="summary-item">
+                <span class="label">Total Students:</span>
+                <span class="value" id="totalStudents">0</span>
+            </div>
+            <div class="summary-item">
+                <span class="label">Present:</span>
+                <span class="value green" id="presentCount">0</span>
+            </div>
+            <div class="summary-item">
+                <span class="label">Absent:</span>
+                <span class="value red" id="absentCount">0</span>
+            </div>
+        </div>
+        
+        <div class="tip-box">
+            💡 <strong>Tip:</strong> All students are marked <span class="badge-present">Present</span> by default. Click on a card to mark as <span class="badge-absent">Absent</span>.
+        </div>
+        
+        <div id="studentsList" class="students-grid"></div>
+        
+        <div class="form-actions">
+            <button type="submit" class="btn-primary btn-large">
+                ✓ Submit Attendance
+            </button>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let students = [];
+let statuses = [];
+
+function loadStudents() {
+    const division = document.getElementById('division').value;
+    if (!division) return;
+    
+    fetch(`/api/get-students/${division}`)
+        .then(response => response.json())
+        .then(data => {
+            students = data;
+            statuses = new Array(students.length).fill('Present');
+            renderStudents();
+            document.getElementById('studentsContainer').style.display = 'block';
+            updateSummary();
+        });
+}
+
+function renderStudents() {
+    const container = document.getElementById('studentsList');
+    container.innerHTML = students.map((student, index) => `
+        <div class="student-card ${statuses[index].toLowerCase()}" onclick="toggleStatus(${index})">
+            <div class="status-icon">${statuses[index] === 'Present' ? '✓' : '✗'}</div>
+            <div class="student-info">
+                <div class="student-name">${student.name}</div>
+                <div class="student-roll">${student.roll_no}</div>
+            </div>
+            <input type="hidden" name="status" value="${statuses[index]}">
+        </div>
+    `).join('');
+}
+
+function toggleStatus(index) {
+    statuses[index] = statuses[index] === 'Present' ? 'Absent' : 'Present';
+    renderStudents();
+    updateSummary();
+}
+
+function updateSummary() {
+    const total = statuses.length;
+    const present = statuses.filter(s => s === 'Present').length;
+    const absent = total - present;
+    
+    document.getElementById('totalStudents').textContent = total;
+    document.getElementById('presentCount').textContent = present;
+    document.getElementById('absentCount').textContent = absent;
+}
+</script>
+{% endblock %}

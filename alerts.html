@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Low Attendance Alerts - AttendFlow{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Low Attendance Alerts</h1>
+    <p>Students with attendance below {{ threshold }}%</p>
+</div>
+
+<div class="alert-banner">
+    ⚠ <strong>{{ students|length }} Students Need Attention</strong>
+</div>
+
+<div class="alerts-grid">
+    {% for student in students %}
+    <div class="alert-card {{ student.criticality|lower }}">
+        <div class="alert-header">
+            <div class="student-details">
+                <h3>{{ student.name }}</h3>
+                <p class="roll-number">{{ student.roll_no }}</p>
+            </div>
+            <span class="badge-critical {{ student.criticality|lower }}">{{ student.criticality }}</span>
+        </div>
+        
+        <div class="alert-body">
+            <div class="info-row">
+                <span class="label">Division</span>
+                <span class="value"><strong>{{ student.division }}</strong></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Attendance</span>
+                <span class="value attendance-value {{ 'critical' if student.percentage < 50 else 'warning' }}">
+                    <strong>{{ student.percentage }}%</strong>
+                </span>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+    
+    {% if not students %}
+    <div class="empty-state">
+        <div class="empty-icon">✓</div>
+        <h3>All Clear!</h3>
+        <p>No students with low attendance at the moment.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
